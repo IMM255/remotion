@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Remotion Motion Studio</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true">RM</div>
+      <div>
+        <div class="brand-title">Remotion Motion Studio</div>
+        <div id="save-state" class="save-state" role="status">Tersimpan lokal</div>
+      </div>
+    </div>
+
+    <nav class="stepper" aria-label="Tahap produksi">
+      <button type="button" data-step="setup" class="active" aria-current="step"><span>1</span> Proyek &amp; Gaya</button>
+      <button type="button" data-step="script"><span>2</span> Naskah &amp; Audio</button>
+      <button type="button" data-step="scenes"><span>3</span> Scene &amp; Kode AI</button>
+      <button type="button" data-step="render"><span>4</span> Preview &amp; Render</button>
+    </nav>
+
+    <div class="project-bar">
+      <label class="sr-only" for="project-select">Pilih proyek</label>
+      <select id="project-select" aria-label="Pilih proyek"></select>
+      <button type="button" id="new-project">+ Proyek baru</button>
+    </div>
+  </header>
+
+  <main class="main">
+    <section id="step-setup" class="step">
+      <div class="step-head">
+        <div>
+          <p class="eyebrow">01 / PROYEK &amp; GAYA</p>
+          <h1>Siapkan gaya dan format video.</h1>
+        </div>
+        <button type="button" class="primary" data-goto="script">Lanjut ke Naskah &amp; Audio</button>
+      </div>
+
+      <div class="grid-two">
+        <div class="panel">
+          <h2>Pengaturan Proyek</h2>
+          <label for="proj-name">Nama proyek</label>
+          <input id="proj-name" type="text" maxlength="100" placeholder="Judul proyek video">
+
+          <div class="row-two">
+            <div>
+              <label for="proj-ratio">Format / Rasio</label>
+              <select id="proj-ratio">
+                <option value="9:16">9:16 Vertikal (1080x1920)</option>
+                <option value="16:9">16:9 Horizontal (1920x1080)</option>
+              </select>
+            </div>
+            <div>
+              <label for="proj-transition">Transisi antar scene (frame)</label>
+              <input id="proj-transition" type="number" min="0" max="30" value="12">
+            </div>
+          </div>
+
+          <label class="check-row">
+            <input id="proj-subtitles" type="checkbox" checked>
+            <span>Tampilkan subtitle otomatis di video</span>
+          </label>
+
+          <label for="proj-idea">Ide cerita singkat (opsional, untuk prompt naskah)</label>
+          <textarea id="proj-idea" rows="4" maxlength="4000" placeholder="Contoh: Kenapa makan seblak tiap hari bikin perut cepat capek, dan cara mengatur jadwalnya…"></textarea>
+
+          <div class="button-row">
+            <button type="button" id="save-setup" class="primary">Simpan pengaturan</button>
+            <button type="button" id="download-style-ref">Unduh gambar referensi gaya</button>
+          </div>
+        </div>
+
+        <aside class="panel">
+          <div class="panel-head">
+            <h2>Gaya Visual</h2>
+            <span id="active-style-pill" class="pill">Kolase Kertas</span>
+          </div>
+          <p class="hint">Pilih gaya yang akan diterjemahkan ke prompt Remotion TSX dan latar belakang video.</p>
+          <div id="style-gallery" class="style-gallery"></div>
+        </aside>
+      </div>
+    </section>
+
+    <section id="step-script" class="step" hidden>
+      <div class="step-head">
+        <div>
+          <p class="eyebrow">02 / NASKAH &amp; AUDIO</p>
+          <h1>Tempel naskah dan voice-over.</h1>
+        </div>
+        <button type="button" class="primary" data-goto="scenes">Lanjut ke Scene &amp; Kode AI</button>
+      </div>
+
+      <div class="grid-script">
+        <div class="panel">
+          <div class="panel-head">
+            <h2>Naskah Voice-Over</h2>
+            <span id="script-stats" class="pill">0 kata</span>
+          </div>
+          <label class="sr-only" for="script-input">Isi naskah voice-over</label>
+          <textarea id="script-input" class="script-paper" rows="14" maxlength="30000" placeholder="Tempel atau tulis naskah voice-over di sini…"></textarea>
+
+          <div class="split-bar">
+            <div>
+              <label for="target-scene-count">Jumlah scene (0 = otomatis)</label>
+              <input id="target-scene-count" type="number" min="0" max="60" value="0">
+            </div>
+            <div class="button-row">
+              <button type="button" id="save-script">Simpan naskah</button>
+              <button type="button" id="split-script" class="primary">Bagi naskah ke scene</button>
+            </div>
+          </div>
+          <p class="hint">Jika voice-over sudah terpasang, pembagian scene otomatis menyinkronkan durasi ke jeda bicara audio.</p>
+        </div>
+
+        <aside class="stack">
+          <div class="panel">
+            <h2>Bantu Tulis Naskah via Web AI</h2>
+            <p class="hint">Salin prompt dari ide cerita (Tahap 1) lalu buka tab AI pilihan Anda.</p>
+            <div class="ai-row">
+              <button type="button" data-script-ai="claude">Claude</button>
+              <button type="button" data-script-ai="chatgpt">ChatGPT</button>
+              <button type="button" data-script-ai="gemini">Gemini</button>
+              <button type="button" id="copy-script-prompt">Salin prompt</button>
+            </div>
+            <p id="script-ai-status" class="status-box" role="status" hidden></p>
+          </div>
+
+          <div class="panel">
+            <h2>Voice-Over (Audio Narasi)</h2>
+            <p class="hint">Salin naskah ke Google AI Studio Speech, unduh audionya, lalu tempel atau seret ke sini.</p>
+            <div class="button-row">
+              <button type="button" id="open-aistudio" class="dark">Salin naskah &amp; buka AI Studio</button>
+              <button type="button" id="sync-audio-btn">Sinkronkan scene ke audio</button>
+            </div>
+
+            <div id="vo-dropzone" class="dropzone" tabindex="0" role="button" aria-label="Unggah, seret, atau tempel file voice-over dengan Ctrl+V">
+              <strong>Tempel (Ctrl+V), seret, atau klik untuk pilih audio</strong>
+              <span>MP3, WAV, M4A, OGG, WebM · maks. 60 MB</span>
+            </div>
+            <input id="vo-file" type="file" accept="audio/*,.m4a" hidden>
+
+            <p id="vo-info" class="hint">Belum ada voice-over terpasang.</p>
+            <audio id="vo-player" class="audio-player" controls hidden></audio>
+            <div class="button-row">
+              <button type="button" id="remove-vo" class="danger" hidden>Lepas voice-over</button>
+            </div>
+          </div>
+
+          <div class="panel">
+            <h2>Musik Latar / Ambience (Opsional)</h2>
+            <p class="hint">Otomatis di-loop, mengecil saat narator berbicara (auto-ducking), dan fade-out 2 detik di akhir.</p>
+            <p id="bgm-info" class="hint">Belum ada musik latar.</p>
+            <div class="button-row">
+              <button type="button" id="upload-bgm">Pilih file musik / ambience</button>
+              <button type="button" id="remove-bgm" class="danger" hidden>Lepas musik</button>
+            </div>
+            <input id="bgm-file" type="file" accept="audio/*,.m4a" hidden>
+            <label for="bgm-volume">Volume musik latar: <strong id="bgm-vol-label">25%</strong></label>
+            <input id="bgm-volume" type="range" min="0.05" max="0.6" step="0.05" value="0.25">
+          </div>
+        </aside>
+      </div>
+
+      <div id="audio-sync-panel" class="panel sync-panel" hidden>
+        <div class="panel-head">
+          <div>
+            <h2>Sinkronisasi Suara &amp; Video (Timeline Sync)</h2>
+            <p class="hint">Seret garis batas scene di atas waveform, atau gunakan <strong>Tap-to-Sync</strong> sambil memutar suara agar perpindahan scene tepat di kalimatnya.</p>
+          </div>
+          <span id="sync-diff-pill" class="pill ok">Sinkron</span>
+        </div>
+
+        <div class="sync-toolbar">
+          <div class="button-row">
+            <button type="button" id="tap-sync-start" class="primary">Mulai Tap-to-Sync</button>
+            <button type="button" id="tap-sync-mark" class="dark" hidden>Tandai Scene Berikutnya (Spasi)</button>
+            <button type="button" id="tap-sync-cancel" hidden>Batal</button>
+            <button type="button" id="sync-auto-inline">Auto-Sync Jeda Suara</button>
+            <button type="button" id="sync-save-btn">Simpan &amp; Sinkron ke Remotion</button>
+          </div>
+          <div class="offset-box">
+            <label for="vo-offset-range">Geser Offset Audio: <strong id="vo-offset-label">0 ms</strong></label>
+            <div class="offset-controls">
+              <input id="vo-offset-range" type="range" min="-2000" max="2000" step="50" value="0">
+              <button type="button" id="vo-offset-reset">Reset 0 ms</button>
+            </div>
+          </div>
+        </div>
+
+        <div id="tap-sync-banner" class="tap-banner" hidden>
+          <div>
+            <span id="tap-sync-step" class="pill">Scene 1 / 1</span>
+            <strong id="tap-sync-current"></strong>
+          </div>
+          <p id="tap-sync-next" class="hint"></p>
+        </div>
+
+        <div class="waveform-wrap">
+          <canvas id="sync-waveform" height="136" aria-label="Waveform audio dan garis batas scene"></canvas>
+          <div class="waveform-meta">
+            <span id="sync-playhead-label">Playhead: 00:00.00</span>
+            <span class="hint">Klik waveform untuk lompat · Seret garis vertikal oranye untuk geser batas scene</span>
+          </div>
+        </div>
+
+        <div id="sync-scene-list" class="sync-scene-list"></div>
+      </div>
+    </section>
+
+    <section id="step-scenes" class="step" hidden>
+      <div class="step-head">
+        <div>
+          <p class="eyebrow">03 / SCENE &amp; KODE AI</p>
+          <h1>Tempel kode Remotion per batch atau per scene.</h1>
+        </div>
+        <div class="button-row">
+          <button type="button" id="download-style-ref-scenes">Unduh referensi gaya</button>
+          <button type="button" class="primary" data-goto="render">Lanjut ke Preview &amp; Render</button>
+        </div>
+      </div>
+
+      <div class="panel toolbar-panel">
+        <div class="segmented" role="tablist" aria-label="Mode tempel kode AI">
+          <button type="button" role="tab" id="tab-batch" class="active" aria-selected="true">Mode Per Batch (Hemat Token)</button>
+          <button type="button" role="tab" id="tab-single" aria-selected="false">Mode Per Scene (Satuan)</button>
+        </div>
+
+        <div class="toolbar-right">
+          <label class="check-row compact">
+            <input id="save-tokens" type="checkbox" checked>
+            <span>Hemat token (Batch 2+ lanjutan chat)</span>
+          </label>
+          <label for="batch-size" class="inline-label">
+            Scene/batch
+            <select id="batch-size">
+              <option value="2" selected>2 scene</option>
+              <option value="3">3 scene</option>
+              <option value="4">4 scene</option>
+            </select>
+          </label>
+          <span id="scenes-progress" class="pill">0 / 0 scene</span>
+        </div>
+      </div>
+
+      <div id="batch-view" class="stack"></div>
+      <div id="single-view" class="stack" hidden></div>
+    </section>
+
+    <section id="step-render" class="step" hidden>
+      <div class="step-head">
+        <div>
+          <p class="eyebrow">04 / PREVIEW &amp; RENDER MP4</p>
+          <h1>Periksa hasil dan render MP4 standar.</h1>
+        </div>
+        <div class="button-row">
+          <button type="button" id="open-remotion-studio">Buka Remotion Studio (Live)</button>
+          <button type="button" id="start-render" class="primary">Render MP4 Sekarang</button>
+        </div>
+      </div>
+
+      <div class="grid-two">
+        <div class="panel">
+          <h2>Ringkasan Video</h2>
+          <div id="render-summary" class="summary-grid"></div>
+          <div id="render-progress-box" class="progress-box" hidden>
+            <div class="panel-head">
+              <strong id="render-phase">Menyiapkan render…</strong>
+              <span id="render-pct" class="pill">0%</span>
+            </div>
+            <progress id="render-bar" max="100" value="0"></progress>
+            <div class="button-row">
+              <button type="button" id="cancel-render" class="danger">Batalkan render</button>
+            </div>
+          </div>
+          <p id="render-error" class="status-box is-error" role="alert" hidden></p>
+          <div id="render-result" class="result-box" hidden>
+            <h3>Hasil MP4 Terverifikasi</h3>
+            <p id="render-meta" class="hint"></p>
+            <div class="button-row">
+              <a id="download-mp4" class="btn-link primary" href="#" download>Unduh MP4</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h2>Preview Video Hasil Render</h2>
+          <p class="hint">Untuk preview interaktif per frame sebelum render, klik tombol <strong>Buka Remotion Studio (Live)</strong> di atas (port 3000).</p>
+          <div id="video-empty" class="empty-box">Belum ada file MP4 yang dirender pada sesi ini. Klik <strong>Render MP4 Sekarang</strong> untuk menghasilkan video siap putar &amp; siap di-skip.</div>
+          <video id="rendered-video" class="video-player" controls hidden></video>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div id="toast" class="toast" role="status" hidden></div>
+  <script type="module" src="/app.js"></script>
+</body>
+</html>

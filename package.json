@@ -1,0 +1,26 @@
+{
+  "name": "remotion-motion-studio",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Local Remotion Studio untuk video motion graphics semi-manual bersama Claude",
+  "scripts": {
+    "studio": "node server/index.mjs",
+    "dev": "remotion studio",
+    "build": "remotion bundle",
+    "render:9x16": "remotion render Portrait9x16 out/video-9x16.mp4 --codec=h264 --pixel-format=yuv420p",
+    "render:16x9": "remotion render Landscape16x9 out/video-16x9.mp4 --codec=h264 --pixel-format=yuv420p",
+    "typecheck": "tsc --noEmit",
+    "test": "node --test tests/*.test.mjs"
+  },
+  "dependencies": {
+    "@remotion/cli": "^4.0.290",
+    "@remotion/transitions": "^4.0.290",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "remotion": "^4.0.290"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.0",
+    "typescript": "^5.7.3"
+  }
+}
