@@ -2,8 +2,21 @@
 
 Aplikasi lokal berbasis **Remotion + Web Studio UI** untuk membuat video motion graphics berbasis React/TSX bersama ChatGPT, Claude, atau Gemini, dengan preview timeline di browser dan export MP4 standar (H.264 + AAC, 30 fps, `faststart`).
 
-## Cara Menjalankan (Web Studio UI)
+## Cara Menjalankan (Aplikasi Desktop / Web Studio UI)
 
+### 1. Mode Aplikasi Desktop (Klik 2x)
+- Klik 2x file **`Jalankan-Desktop.vbs`** di folder `E:\remotion` (tanpa membuka terminal), atau jalankan:
+  ```powershell
+  cd E:\remotion
+  npm run desktop
+  ```
+- Jendela **Remotion Motion Studio** akan terbuka langsung, server lokal menyala otomatis di latar belakang, dan mati bersih saat jendela ditutup.
+- Untuk mencetak installer `.exe` Windows (NSIS & Portable) ke folder `dist-desktop/`:
+  ```powershell
+  npm run dist:win
+  ```
+
+### 2. Mode Browser Lokal
 ```powershell
 cd E:\remotion
 npm run studio

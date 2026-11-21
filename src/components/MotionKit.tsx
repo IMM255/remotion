@@ -3,6 +3,7 @@ import { interpolate, spring, useCurrentFrame, useVideoConfig } from 'remotion';
 
 export const SpringIn: React.FC<{
   delaySec?: number;
+  delay?: number;
   fromY?: number;
   fromX?: number;
   fromScale?: number;
@@ -11,7 +12,8 @@ export const SpringIn: React.FC<{
   style?: React.CSSProperties;
   children: React.ReactNode;
 }> = ({
-  delaySec = 0,
+  delaySec,
+  delay,
   fromY = 48,
   fromX = 0,
   fromScale = 0.88,
@@ -22,8 +24,11 @@ export const SpringIn: React.FC<{
 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
+  const rawDelay = delaySec ?? delay ?? 0;
+  // Support both seconds (e.g. 0.3) and frame counts if > 5
+  const delayFrames = rawDelay > 5 ? Math.round(rawDelay) : Math.round(rawDelay * fps);
   const progress = spring({
-    frame: Math.max(0, frame - Math.round(delaySec * fps)),
+    frame: Math.max(0, frame - delayFrames),
     fps,
     config: { damping, stiffness }
   });
@@ -111,14 +116,29 @@ export const KineticWords: React.FC<{
 };
 
 export const TagPin: React.FC<{
-  label: string;
+  label?: string;
+  children?: React.ReactNode;
+  theme?: { accent?: string; ink?: string; surface?: string };
   bg?: string;
   color?: string;
   pinColor?: string;
   rotateDeg?: number;
   delaySec?: number;
-}> = ({ label, bg = '#2a9d8f', color = '#ffffff', pinColor = '#f07a5a', rotateDeg = -3, delaySec = 0.4 }) => (
-  <SpringIn delaySec={delaySec} fromY={24} fromScale={0.7} damping={11} stiffness={220}>
+  delay?: number;
+  style?: React.CSSProperties;
+}> = ({
+  label,
+  children,
+  theme,
+  bg,
+  color = '#ffffff',
+  pinColor = '#f07a5a',
+  rotateDeg = -3,
+  delaySec,
+  delay,
+  style
+}) => (
+  <SpringIn delaySec={delaySec ?? delay ?? 0.4} fromY={24} fromScale={0.7} damping={11} stiffness={220}>
     <div
       style={{
         position: 'relative',
@@ -127,14 +147,15 @@ export const TagPin: React.FC<{
         justifyContent: 'center',
         padding: '14px 34px',
         borderRadius: 8,
-        background: bg,
+        background: bg ?? theme?.accent ?? '#2a9d8f',
         color,
         fontFamily: '"Segoe UI", system-ui, sans-serif',
         fontWeight: 800,
         fontSize: 34,
         letterSpacing: '0.04em',
         transform: `rotate(${rotateDeg}deg)`,
-        boxShadow: '6px 9px 0 rgba(43,42,40,0.16)'
+        boxShadow: '6px 9px 0 rgba(43,42,40,0.16)',
+        ...style
       }}
     >
       <div
@@ -150,21 +171,22 @@ export const TagPin: React.FC<{
           boxShadow: 'inset -3px -3px 0 rgba(0,0,0,0.15)'
         }}
       />
-      {label}
+      {label ?? children}
     </div>
   </SpringIn>
 );
 
 export const PaperCard: React.FC<{
   bg?: string;
+  theme?: { surface?: string; ink?: string };
   radius?: number;
   padding?: number;
   style?: React.CSSProperties;
   children: React.ReactNode;
-}> = ({ bg = '#ffffff', radius = 22, padding = 32, style, children }) => (
+}> = ({ bg, theme, radius = 22, padding = 32, style, children }) => (
   <div
     style={{
-      background: bg,
+      background: bg ?? theme?.surface ?? '#ffffff',
       borderRadius: radius,
       padding,
       boxShadow: '8px 12px 0 rgba(43,42,40,0.15)',

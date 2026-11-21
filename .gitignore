@@ -1,4 +1,6 @@
 build
+dist-desktop
+.electron-data
 node_modules
 out
 projects

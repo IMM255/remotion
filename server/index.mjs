@@ -98,7 +98,12 @@ async function startRenderJob(project) {
 
   const cliScript = join(ROOT, 'node_modules', '@remotion', 'cli', 'remotion-cli.js');
   const args = [cliScript, 'render', compId, outPath, '--codec=h264', '--pixel-format=yuv420p'];
-  const proc = spawn(process.execPath, args, { cwd: ROOT, windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'] });
+  const proc = spawn(process.execPath, args, {
+    cwd: ROOT,
+    windowsHide: true,
+    stdio: ['ignore', 'pipe', 'pipe'],
+    env: { ...process.env, ELECTRON_RUN_AS_NODE: '1' }
+  });
   job.proc = proc;
 
   let logTail = '';
@@ -200,7 +205,10 @@ export function createStudioServer() {
         if (!studioProc || studioProc.exitCode !== null) {
           const cliScript = join(ROOT, 'node_modules', '@remotion', 'cli', 'remotion-cli.js');
           studioProc = spawn(process.execPath, [cliScript, 'studio', '--port', '3000', '--no-open'], {
-            cwd: ROOT, windowsHide: true, stdio: 'ignore'
+            cwd: ROOT,
+            windowsHide: true,
+            stdio: 'ignore',
+            env: { ...process.env, ELECTRON_RUN_AS_NODE: '1' }
           });
           studioProc.on('exit', () => { studioProc = null; });
         }
@@ -468,6 +476,19 @@ export function createStudioServer() {
       return sendJson(res, err.status || 400, { error: err.message || 'Terjadi kesalahan server.' });
     }
   });
+}
+
+export function stopStudioProcesses() {
+  if (studioProc && studioProc.exitCode === null) {
+    try { studioProc.kill(); } catch {}
+    studioProc = null;
+  }
+  for (const job of renderJobs.values()) {
+    if (job.status === 'running') {
+      job.status = 'cancelled';
+      try { job.proc?.kill(); } catch {}
+    }
+  }
 }
 
 if (import.meta.url === `file:///${process.argv[1].replace(/\\/g, '/')}` || process.argv[1]?.endsWith('server\\index.mjs') || process.argv[1]?.endsWith('server/index.mjs')) {

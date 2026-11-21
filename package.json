@@ -2,8 +2,11 @@
   "name": "remotion-motion-studio",
   "version": "1.0.0",
   "private": true,
+  "main": "desktop/main.cjs",
   "description": "Local Remotion Studio untuk video motion graphics semi-manual bersama Claude",
   "scripts": {
+    "desktop": "electron .",
+    "dist:win": "electron-builder --win",
     "studio": "node server/index.mjs",
     "dev": "remotion studio",
     "build": "remotion bundle",
@@ -21,6 +24,37 @@
   },
   "devDependencies": {
     "@types/react": "^19.0.0",
+    "electron": "^45.4.1",
+    "electron-builder": "^26.18.0",
     "typescript": "^5.7.3"
+  },
+  "build": {
+    "appId": "com.remotion.motionstudio",
+    "productName": "Remotion Motion Studio",
+    "asar": false,
+    "directories": {
+      "output": "dist-desktop"
+    },
+    "files": [
+      "desktop/**/*",
+      "server/**/*",
+      "studio-ui/**/*",
+      "src/**/*",
+      "public/**/*",
+      "prompts/**/*",
+      "package.json",
+      "tsconfig.json",
+      "remotion.config.ts"
+    ],
+    "win": {
+      "target": [
+        "nsis",
+        "portable"
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
   }
 }
