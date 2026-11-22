@@ -491,7 +491,8 @@ export function stopStudioProcesses() {
   }
 }
 
-if (import.meta.url === `file:///${process.argv[1].replace(/\\/g, '/')}` || process.argv[1]?.endsWith('server\\index.mjs') || process.argv[1]?.endsWith('server/index.mjs')) {
+const entryArg = String(process.argv[1] || '');
+if (import.meta.url === `file:///${entryArg.replace(/\\/g, '/')}` || entryArg.endsWith('server\\index.mjs') || entryArg.endsWith('server/index.mjs')) {
   await ensureDirs();
   const projects = await listProjects();
   if (projects[0]) await syncProjectToRemotion(projects[0]);

@@ -5,7 +5,7 @@
   "main": "desktop/main.cjs",
   "description": "Local Remotion Studio untuk video motion graphics semi-manual bersama Claude",
   "scripts": {
-    "desktop": "electron .",
+    "desktop": "node desktop/launch.mjs",
     "dist:win": "electron-builder --win",
     "studio": "node server/index.mjs",
     "dev": "remotion studio",

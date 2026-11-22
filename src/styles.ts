@@ -1,4 +1,4 @@
-import type { StylePresetId } from './config';
+import { OPUSCAR_THEMES } from './opuscar-themes';
 
 export interface StyleTheme {
   name: string;
@@ -14,7 +14,7 @@ export interface StyleTheme {
   hasGrid?: boolean;
 }
 
-export const STYLE_THEMES: Record<StylePresetId, StyleTheme> = {
+export const STYLE_THEMES: Record<string, StyleTheme> = {
   collage: {
     name: 'Kolase Kertas',
     bg: '#d4bc9b',
@@ -135,5 +135,6 @@ export const STYLE_THEMES: Record<StylePresetId, StyleTheme> = {
     yellow: '#ffe19c',
     isDark: true,
     isPaper: false
-  }
+  },
+  ...OPUSCAR_THEMES
 };

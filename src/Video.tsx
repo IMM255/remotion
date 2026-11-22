@@ -33,10 +33,12 @@ export const MotionVideo: React.FC = () => {
   const voOffsetSec = Number(PROJECT_CONFIG.voiceoverOffsetSec ?? 0);
   const voOffsetFrames = Math.round(voOffsetSec * fps);
 
+  const seriesKey = `${SCENES.map((s) => s.id).join(',')}-${transFrames}`;
+
   return (
     <AbsoluteFill style={{ background: theme.bg }}>
-      <TransitionSeries>
-        {SCENES.map((sc, idx) => {
+      <TransitionSeries key={seriesKey}>
+        {SCENES.flatMap((sc, idx) => {
           const baseFrames = Math.max(15, Math.round(sc.durationSec * fps));
           const isLast = idx === SCENES.length - 1;
           // Compensate transition overlap so every scene starts at its exact audio timestamp
@@ -45,25 +47,29 @@ export const MotionVideo: React.FC = () => {
           const SceneComponent = sc.Component;
           const presentation = idx % 2 === 0 ? fade() : slide({ direction: 'from-right' });
 
-          return (
-            <React.Fragment key={sc.id}>
-              <TransitionSeries.Sequence durationInFrames={seqFrames}>
-                <AbsoluteFill>
-                  <StageBackdrop theme={theme} dark={sc.dark} />
-                  <SceneComponent theme={theme} />
-                  {PROJECT_CONFIG.showSubtitles && sc.narration ? (
-                    <SubtitleOverlay text={sc.narration} />
-                  ) : null}
-                </AbsoluteFill>
-              </TransitionSeries.Sequence>
-              {!isLast && transFrames > 0 ? (
-                <TransitionSeries.Transition
-                  presentation={presentation}
-                  timing={linearTiming({ durationInFrames: transFrames })}
-                />
-              ) : null}
-            </React.Fragment>
-          );
+          const items: React.ReactNode[] = [
+            <TransitionSeries.Sequence key={sc.id} durationInFrames={seqFrames}>
+              <AbsoluteFill>
+                <StageBackdrop theme={theme} dark={sc.dark} />
+                <SceneComponent theme={theme} />
+                {PROJECT_CONFIG.showSubtitles && sc.narration ? (
+                  <SubtitleOverlay text={sc.narration} />
+                ) : null}
+              </AbsoluteFill>
+            </TransitionSeries.Sequence>
+          ];
+
+          if (!isLast && transFrames > 0) {
+            items.push(
+              <TransitionSeries.Transition
+                key={`${sc.id}-tr`}
+                presentation={presentation}
+                timing={linearTiming({ durationInFrames: transFrames })}
+              />
+            );
+          }
+
+          return items;
         })}
       </TransitionSeries>
 

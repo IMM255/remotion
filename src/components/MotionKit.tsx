@@ -57,20 +57,26 @@ export const KineticWords: React.FC<{
   color?: string;
   fontSize?: number;
   startSec?: number;
+  delay?: number;
   gapSec?: number;
   align?: 'center' | 'left';
+  style?: React.CSSProperties;
 }> = ({
   text,
   accentWord,
   accentColor = '#f07a5a',
   color = '#26355d',
   fontSize = 62,
-  startSec = 0.1,
+  startSec,
+  delay,
   gapSec = 0.08,
-  align = 'center'
+  align = 'center',
+  style
 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
+  const rawStart = startSec ?? delay ?? 0.1;
+  const startOffsetSec = rawStart > 5 ? rawStart / fps : rawStart;
   const words = text.trim().split(/\s+/);
   const accentLower = accentWord?.toLowerCase();
 
@@ -85,11 +91,12 @@ export const KineticWords: React.FC<{
         fontWeight: 800,
         fontSize,
         lineHeight: 1.15,
-        letterSpacing: '-0.02em'
+        letterSpacing: '-0.02em',
+        ...style
       }}
     >
       {words.map((word, i) => {
-        const startFrame = Math.round((startSec + i * gapSec) * fps);
+        const startFrame = Math.round((startOffsetSec + i * gapSec) * fps);
         const k = spring({
           frame: Math.max(0, frame - startFrame),
           fps,
@@ -117,6 +124,7 @@ export const KineticWords: React.FC<{
 
 export const TagPin: React.FC<{
   label?: string;
+  text?: string;
   children?: React.ReactNode;
   theme?: { accent?: string; ink?: string; surface?: string };
   bg?: string;
@@ -128,6 +136,7 @@ export const TagPin: React.FC<{
   style?: React.CSSProperties;
 }> = ({
   label,
+  text,
   children,
   theme,
   bg,
@@ -171,7 +180,7 @@ export const TagPin: React.FC<{
           boxShadow: 'inset -3px -3px 0 rgba(0,0,0,0.15)'
         }}
       />
-      {label ?? children}
+      {label ?? text ?? children}
     </div>
   </SpringIn>
 );

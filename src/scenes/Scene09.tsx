@@ -1,611 +1,226 @@
-import React from 'react';
-import {
-  AbsoluteFill,
-  Easing,
-  interpolate,
-  spring,
-  useCurrentFrame,
-  useVideoConfig,
-} from 'remotion';
+import React from "react";
+import { AbsoluteFill, Easing, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
 
-const FONT_FAMILY =
-  "'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, sans-serif";
+// Scene09 · 3.13 s @ 30 fps · 1080x1920 · Comic History Cartoon (paper-cut) · tema gelap
+export const SCENE09_FPS = 30;
+export const SCENE09_DURATION = 94;
+export const SCENE09_NARRATION = "Ternyata sejarah bisa seaneh itu, ya?";
 
-export const Scene09: React.FC = () => {
-  const frame = useCurrentFrame();
+const clamp9 = { extrapolateLeft: "clamp", extrapolateRight: "clamp" } as const;
+const ease9 = (
+  f: number,
+  [a, b]: [number, number],
+  [c, d]: [number, number],
+  e: (t: number) => number = Easing.out(Easing.cubic)
+) => interpolate(f, [a, b], [c, d], { ...clamp9, easing: e });
+
+const CUT9 = "drop-shadow(0px 8px 0px rgba(0,0,0,0.45))";
+const SERIF9 = "'Playfair Display','Georgia',serif";
+const SANS9 = "'Baloo 2','Arial Black',sans-serif";
+
+export const durationInFrames9 = SCENE09_DURATION;
+
+export const Scene09 = function Scene09() {
+  const f = useCurrentFrame();
   const { fps } = useVideoConfig();
 
-  // Staggered spring entrances (3.74s ~ 112 frames @ 30fps)
-  const headerSpring = spring({
-    frame,
-    fps,
-    config: { damping: 16, stiffness: 150, mass: 0.9 },
+  // kamera: pull-out dari bawah ke atas dengan sedikit miring (beda dari Scene08)
+  const zoom = ease9(f, [0, SCENE09_DURATION], [1.18, 1.0], Easing.out(Easing.cubic));
+  const camY = ease9(f, [0, SCENE09_DURATION], [-90, 0], Easing.out(Easing.cubic));
+  const tilt = ease9(f, [0, SCENE09_DURATION], [1.4, 0], Easing.out(Easing.cubic));
+
+  // buku sejarah merosot ke bawah (transisi dari Scene08), tertinggal sebagian
+  const bookSlide = ease9(f, [0, 30], [0, 1], Easing.in(Easing.quad));
+
+  // tokoh kartun bingung masuk dari kanan dengan pegas
+  const enter = spring({ frame: f - 8, fps, config: { damping: 12, stiffness: 120, mass: 0.8 } });
+  const charX = (1 - enter) * 700;
+  const shrugBob = Math.sin(f / 5) * 6;
+  const shrug = ease9(f, [30, 44], [0, 1], Easing.out(Easing.back(2)));
+
+  // tanda tanya berjatuhan / mengambang
+  const marks = Array.from({ length: 7 }, (_, i) => {
+    const t = f - (16 + i * 5);
+    if (t < 0) return null;
+    const pop = ease9(t, [0, 10], [0, 1], Easing.out(Easing.back(2.4)));
+    const x = 140 + ((i * 151) % 800);
+    const baseY = 420 + ((i * 197) % 700);
+    const y = baseY - t * 1.6 + Math.sin((t + i * 7) / 7) * 14;
+    const colors = ["#e8c25a", "#e87a6a", "#7fc4cf"];
+    return (
+      <text
+        key={i}
+        x={x}
+        y={y}
+        textAnchor="middle"
+        fontFamily={SANS9}
+        fontWeight={900}
+        fontSize={96 + (i % 3) * 30}
+        fill={colors[i % 3]}
+        opacity={pop * 0.9}
+        transform={`rotate(${(i % 2 ? 12 : -12) + Math.sin(t / 6) * 6} ${x} ${y}) scale(${pop})`}
+        style={{ transformOrigin: `${x}px ${y}px` }}
+      >
+        ?
+      </text>
+    );
   });
 
-  const chatSpring = spring({
-    frame: Math.max(0, frame - Math.round(fps * 0.45)),
-    fps,
-    config: { damping: 14, stiffness: 170, mass: 0.85 },
-  });
+  // balon ucapan
+  const bubble = ease9(f, [40, 54], [0, 1], Easing.out(Easing.back(2.2)));
 
-  const charSpring = spring({
-    frame: Math.max(0, frame - Math.round(fps * 0.2)),
-    fps,
-    config: { damping: 15, stiffness: 120, mass: 1 },
-  });
-
-  const badgeSpring = spring({
-    frame: Math.max(0, frame - Math.round(fps * 1.15)),
-    fps,
-    config: { damping: 13, stiffness: 165, mass: 0.8 },
-  });
-
-  // Left-to-right dashed route progress
-  const routeProgress = interpolate(
-    frame,
-    [Math.round(fps * 0.6), Math.round(fps * 2.2)],
-    [0, 1],
-    {
-      extrapolateLeft: 'clamp',
-      extrapolateRight: 'clamp',
-      easing: Easing.out(Easing.cubic),
-    }
-  );
-
-  // Subtle idle breathing & phone check bobbing
-  const breathY = Math.sin((frame / fps) * 2.6) * 5;
-  const headTilt = Math.sin((frame / fps) * 2.0) * 3.5;
-  const speedStreakX = ((frame * 14) % 240) - 40;
-
-  // Blue checkmarks pop after chat bubble lands
-  const checkPop = spring({
-    frame: Math.max(0, frame - Math.round(fps * 1.05)),
-    fps,
-    config: { damping: 12, stiffness: 220 },
-  });
-
-  // Subtle camera pan left-to-right
-  const cameraX = interpolate(frame, [0, Math.round(fps * 3.74)], [16, -16], {
-    extrapolateLeft: 'clamp',
-    extrapolateRight: 'clamp',
+  // bintang latar berkelip
+  const stars = Array.from({ length: 22 }, (_, i) => {
+    const x = (i * 97 + 40) % 1040;
+    const y = (i * 181 + 60) % 900;
+    const tw = 0.35 + 0.65 * Math.abs(Math.sin((f + i * 11) / 12));
+    return <circle key={i} cx={x} cy={y} r={3 + (i % 3)} fill="#f4e7c8" opacity={tw * 0.7} />;
   });
 
   return (
-    <AbsoluteFill
-      style={{
-        backgroundColor: '#FBF8F3',
-        fontFamily: FONT_FAMILY,
-        overflow: 'hidden',
-      }}
-    >
-      {/* Subtle editorial dot grid */}
-      <svg
-        width="1080"
-        height="1920"
-        viewBox="0 0 1080 1920"
-        style={{ position: 'absolute', inset: 0, opacity: 0.35 }}
-      >
-        <defs>
-          <pattern
-            id="s09-dots"
-            width="44"
-            height="44"
-            patternUnits="userSpaceOnUse"
-          >
-            <circle cx="4" cy="4" r="2" fill="#CBD5E1" />
-          </pattern>
-        </defs>
-        <rect width="1080" height="1920" fill="url(#s09-dots)" />
-      </svg>
-
-      {/* Warm organic background shapes */}
-      <div
+    <AbsoluteFill style={{ background: "#14182b", overflow: "hidden" }}>
+      <AbsoluteFill
         style={{
-          position: 'absolute',
-          top: -120,
-          right: -140,
-          width: 620,
-          height: 620,
-          borderRadius: '50%',
-          background:
-            'radial-gradient(circle, rgba(255,90,54,0.13) 0%, rgba(255,90,54,0) 70%)',
-        }}
-      />
-      <div
-        style={{
-          position: 'absolute',
-          bottom: -140,
-          left: -120,
-          width: 720,
-          height: 720,
-          borderRadius: '50%',
-          background:
-            'radial-gradient(circle, rgba(37,99,235,0.10) 0%, rgba(37,99,235,0) 70%)',
-        }}
-      />
-
-      {/* Main Container with gentle horizontal drift */}
-      <div
-        style={{
-          position: 'absolute',
-          inset: 0,
-          transform: `translateX(${cameraX}px)`,
+          transform: `translateY(${camY}px) scale(${zoom}) rotate(${tilt}deg)`,
+          transformOrigin: "50% 60%",
         }}
       >
-        {/* Top Copy Header */}
-        <div
-          style={{
-            position: 'absolute',
-            top: 170,
-            left: 84,
-            right: 84,
-            opacity: headerSpring,
-            transform: `translateX(${interpolate(headerSpring, [0, 1], [-70, 0])}px)`,
-          }}
-        >
-          <div
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 12,
-              padding: '10px 22px',
-              borderRadius: 999,
-              backgroundColor: '#181A20',
-              color: '#FBF8F3',
-              fontSize: 26,
-              fontWeight: 700,
-              letterSpacing: '0.04em',
-              textTransform: 'uppercase',
-              marginBottom: 26,
-            }}
-          >
-            <span
-              style={{
-                width: 12,
-                height: 12,
-                borderRadius: '50%',
-                backgroundColor: '#22C55E',
-                display: 'inline-block',
-              }}
-            />
-            Pesan Masuk
-          </div>
+        <svg width={1080} height={1920} viewBox="0 0 1080 1920">
+          {/* langit malam */}
+          <rect width={1080} height={1920} fill="#14182b" />
+          <rect y={900} width={1080} height={1020} fill="#1d2340" />
+          {stars}
 
-          <h1
-            style={{
-              margin: 0,
-              fontSize: 66,
-              lineHeight: 1.15,
-              fontWeight: 800,
-              color: '#181A20',
-              letterSpacing: '-0.025em',
-            }}
-          >
-            Jadi, kalau temanmu bilang,
-          </h1>
-        </div>
+          {/* bulan kertas */}
+          <g transform="translate(850,260)" style={{ filter: CUT9 }}>
+            <circle r={120} fill="#f1e3c2" />
+            <circle cx={-34} cy={-24} r={22} fill="#d9c9a0" />
+            <circle cx={40} cy={34} r={30} fill="#d9c9a0" />
+            <circle cx={22} cy={-56} r={14} fill="#d9c9a0" />
+          </g>
 
-        {/* Incoming Chat Bubble Card (Slides in from right) */}
-        <div
-          style={{
-            position: 'absolute',
-            top: 470,
-            left: 84,
-            right: 84,
-            opacity: chatSpring,
-            transform: `translateX(${interpolate(chatSpring, [0, 1], [110, 0])}px) scale(${interpolate(chatSpring, [0, 1], [0.92, 1])})`,
-          }}
-        >
-          <div
-            style={{
-              backgroundColor: '#FFFFFF',
-              borderRadius: '34px 34px 34px 10px',
-              padding: '38px 42px',
-              border: '3px solid #181A20',
-              boxShadow: '12px 14px 0px #181A20',
-              position: 'relative',
-            }}
-          >
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 16,
-                marginBottom: 18,
-              }}
-            >
-              {/* Faceless mini avatar */}
-              <div
-                style={{
-                  width: 56,
-                  height: 56,
-                  borderRadius: '50%',
-                  backgroundColor: '#FFE4D6',
-                  border: '2.5px solid #181A20',
-                  overflow: 'hidden',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <svg width="56" height="56" viewBox="0 0 56 56">
-                  <circle cx="28" cy="22" r="11" fill="#F2BE9B" />
-                  <path
-                    d="M17 20 C17 10, 39 10, 39 20 C35 16, 21 16, 17 20 Z"
-                    fill="#181A20"
-                  />
-                  <path
-                    d="M10 56 C12 40, 44 40, 46 56 Z"
-                    fill="#FF5A36"
-                  />
-                </svg>
-              </div>
-              <div>
-                <div
-                  style={{
-                    fontSize: 28,
-                    fontWeight: 800,
-                    color: '#181A20',
-                  }}
-                >
-                  Temanmu
-                </div>
-                <div
-                  style={{
-                    fontSize: 22,
-                    fontWeight: 600,
-                    color: '#16A34A',
-                  }}
-                >
-                  online
-                </div>
-              </div>
-            </div>
+          {/* siluet bukit kertas */}
+          <path d="M0 1260 Q 200 1160 420 1240 T 820 1220 T 1080 1250 V1920 H0Z" fill="#262d52" />
+          <path d="M0 1420 Q 260 1340 540 1410 T 1080 1390 V1920 H0Z" fill="#2f3763" />
 
-            <div
-              style={{
-                fontSize: 54,
-                fontWeight: 800,
-                lineHeight: 1.2,
-                color: '#181A20',
-                letterSpacing: '-0.02em',
-              }}
-            >
-              “Tenang, gue udah{' '}
-              <span
-                style={{
-                  backgroundColor: '#FEF08A',
-                  padding: '2px 14px',
-                  borderRadius: 12,
-                  display: 'inline-block',
-                }}
-              >
-                otw!
-              </span>
-              ”
-            </div>
-
-            {/* Timestamp + Double Blue Tick */}
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'flex-end',
-                alignItems: 'center',
-                gap: 10,
-                marginTop: 22,
-                fontSize: 22,
-                fontWeight: 600,
-                color: '#64748B',
-              }}
-            >
-              <span>Baru saja</span>
-              <svg
-                width="34"
-                height="22"
-                viewBox="0 0 34 22"
-                style={{
-                  transform: `scale(${checkPop})`,
-                }}
-              >
-                <path
-                  d="M2 12 L8 18 L20 5"
-                  fill="none"
-                  stroke="#0EA5E9"
-                  strokeWidth="3.2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M12 12 L18 18 L30 5"
-                  fill="none"
-                  stroke="#0EA5E9"
-                  strokeWidth="3.2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </div>
-          </div>
-        </div>
-
-        {/* Animated Dashed Route + Floating "OTW" Speed Pill */}
-        <svg
-          width="1080"
-          height="320"
-          viewBox="0 0 1080 320"
-          style={{
-            position: 'absolute',
-            top: 840,
-            left: 0,
-          }}
-        >
-          <path
-            d="M 110 210 C 310 210, 420 80, 680 120 C 810 140, 890 110, 960 70"
-            fill="none"
-            stroke="#181A20"
-            strokeWidth="5"
-            strokeDasharray="16 14"
-            strokeDashoffset={interpolate(routeProgress, [0, 1], [950, 0])}
-            strokeLinecap="round"
-            opacity="0.35"
-          />
-          {/* Origin pin */}
-          <circle cx="110" cy="210" r="14" fill="#2563EB" stroke="#181A20" strokeWidth="4" />
-          {/* Destination pin */}
+          {/* buku sejarah tertutup, merosot di kiri bawah */}
           <g
-            transform={`translate(960, 70) scale(${badgeSpring})`}
+            transform={`translate(260,${1500 + bookSlide * 320}) rotate(-8)`}
+            style={{ filter: CUT9 }}
           >
+            <rect x={-200} y={-250} width={400} height={500} rx={18} fill="#7a2f2a" stroke="#4a1d1a" strokeWidth={6} />
+            <rect x={-200} y={-250} width={34} height={500} rx={12} fill="#4a1d1a" />
+            <rect x={-130} y={-170} width={280} height={8} fill="#c9a24a" />
+            <text x={10} y={-40} textAnchor="middle" fontFamily={SANS9} fontWeight={900} fontSize={64} fill="#f1e3c2">
+              SEJARAH
+            </text>
+            <rect x={-130} y={30} width={280} height={8} fill="#c9a24a" />
+          </g>
+
+          {/* tokoh kartun bingung (potongan kertas) */}
+          <g transform={`translate(${640 + charX},${1180 + shrugBob})`} style={{ filter: CUT9 }}>
+            {/* kaki */}
+            <rect x={-60} y={250} width={40} height={120} rx={14} fill="#1f1a17" />
+            <rect x={20} y={250} width={40} height={120} rx={14} fill="#1f1a17" />
+            <rect x={-84} y={346} width={72} height={30} rx={14} fill="#0f0c0b" />
+            <rect x={12} y={346} width={72} height={30} rx={14} fill="#0f0c0b" />
+            {/* badan: jas biru dengan selempang */}
+            <rect x={-100} y={20} width={200} height={250} rx={30} fill="#27406b" stroke="#142544" strokeWidth={5} />
+            <rect x={-60} y={30} width={120} height={230} rx={20} fill="#f1ead8" />
+            <path d="M-90 30 L40 30 L90 260 L-10 260Z" fill="#bf3b36" opacity={0.9} />
+            {[70, 120, 170, 220].map((y) => (
+              <circle key={y} cx={0} cy={y} r={8} fill="#c9a24a" />
+            ))}
+            {/* lengan: mengangkat bahu */}
+            <g transform={`translate(-100,60) rotate(${-30 * shrug})`}>
+              <rect x={-30} y={0} width={44} height={150} rx={20} fill="#27406b" stroke="#142544" strokeWidth={5} />
+              <circle cx={-8} cy={160} r={26} fill="#f1ead8" />
+            </g>
+            <g transform={`translate(100,60) rotate(${30 * shrug})`}>
+              <rect x={-14} y={0} width={44} height={150} rx={20} fill="#27406b" stroke="#142544" strokeWidth={5} />
+              <circle cx={8} cy={160} r={26} fill="#f1ead8" />
+            </g>
+            {/* kepala */}
+            <circle cx={0} cy={-80} r={92} fill="#e8b88a" />
+            <circle cx={-50} cy={-56} r={18} fill="#e98b7a" opacity={0.7} />
+            <circle cx={50} cy={-56} r={18} fill="#e98b7a" opacity={0.7} />
+            {/* mata melebar */}
+            <circle cx={-32} cy={-92} r={16} fill="#fbf4e4" stroke="#2a1d18" strokeWidth={4} />
+            <circle cx={32} cy={-92} r={16} fill="#fbf4e4" stroke="#2a1d18" strokeWidth={4} />
+            <circle cx={-28 + Math.sin(f / 6) * 4} cy={-90} r={7} fill="#2a1d18" />
+            <circle cx={36 + Math.sin(f / 6) * 4} cy={-90} r={7} fill="#2a1d18" />
+            {/* alis miring bingung */}
+            <path d="M-52 -126 L-14 -114" stroke="#2a1d18" strokeWidth={7} strokeLinecap="round" />
+            <path d="M14 -120 L52 -134" stroke="#2a1d18" strokeWidth={7} strokeLinecap="round" />
+            {/* mulut miring */}
+            <path d="M-26 -34 Q 0 -52 28 -30" stroke="#5a2a22" strokeWidth={7} fill="none" strokeLinecap="round" />
+            {/* topi bicorne */}
+            <path d="M-130 -150 Q 0 -250 130 -150 Q 0 -190 -130 -150Z" fill="#14182b" stroke="#c9a24a" strokeWidth={6} />
+            <circle cx={0} cy={-180} r={22} fill="#bf3b36" stroke="#fbf4e4" strokeWidth={6} />
+          </g>
+
+          {/* tanda tanya */}
+          {marks}
+
+          {/* balon ucapan */}
+          <g transform={`translate(80,560) scale(${bubble})`} style={{ transformOrigin: "300px 120px", filter: CUT9 }}>
             <path
-              d="M0 0 C-18 -20, -24 -36, -24 -48 C-24 -62, -13 -73, 0 -73 C13 -73, 24 -62, 24 -48 C24 -36, 18 -20, 0 0 Z"
-              fill="#FF5A36"
-              stroke="#181A20"
-              strokeWidth="4"
+              d="M40 0 H560 a40 40 0 0 1 40 40 V220 a40 40 0 0 1 -40 40 H420 L520 340 L330 260 H40 a40 40 0 0 1 -40 -40 V40 a40 40 0 0 1 40 -40Z"
+              fill="#fbf4e4"
+              stroke="#e8c25a"
+              strokeWidth={6}
             />
-            <circle cx="0" cy="-48" r="9" fill="#FBF8F3" />
+            <text x={300} y={112} textAnchor="middle" fontFamily={SANS9} fontWeight={900} fontSize={84} fill="#1f1a17">
+              SEANEH
+            </text>
+            <text x={300} y={206} textAnchor="middle" fontFamily={SANS9} fontWeight={900} fontSize={84} fill="#c8372d">
+              ITU, YA?
+            </text>
           </g>
         </svg>
+      </AbsoluteFill>
 
-        {/* Floating Speed Badge (Right Side) */}
-        <div
-          style={{
-            position: 'absolute',
-            top: 995,
-            right: 88,
-            opacity: badgeSpring,
-            transform: `scale(${interpolate(badgeSpring, [0, 1], [0.75, 1])}) rotate(-3deg)`,
-          }}
-        >
-          <div
-            style={{
-              backgroundColor: '#FF5A36',
-              color: '#FFFFFF',
-              padding: '22px 34px',
-              borderRadius: 26,
-              border: '3px solid #181A20',
-              boxShadow: '8px 8px 0px #181A20',
-              overflow: 'hidden',
-              position: 'relative',
-              minWidth: 330,
-            }}
-          >
-            {/* Moving speed lines */}
-            <div
-              style={{
-                position: 'absolute',
-                top: 18,
-                left: speedStreakX,
-                width: 90,
-                height: 4,
-                borderRadius: 4,
-                backgroundColor: 'rgba(255,255,255,0.45)',
-              }}
-            />
-            <div
-              style={{
-                position: 'absolute',
-                bottom: 20,
-                left: (speedStreakX + 120) % 240,
-                width: 65,
-                height: 4,
-                borderRadius: 4,
-                backgroundColor: 'rgba(255,255,255,0.35)',
-              }}
-            />
-            <div
-              style={{
-                fontSize: 22,
-                fontWeight: 700,
-                opacity: 0.9,
-                letterSpacing: '0.06em',
-                textTransform: 'uppercase',
-              }}
-            >
-              Katanya sih...
-            </div>
-            <div
-              style={{
-                fontSize: 42,
-                fontWeight: 900,
-                marginTop: 4,
-              }}
-            >
-              OTW 100% ⚡
-            </div>
-          </div>
+      {/* label kertas atas (di luar kamera) */}
+      <div
+        style={{
+          position: "absolute",
+          right: 60,
+          top: 90,
+          padding: "14px 28px",
+          background: "#2a2f55",
+          border: "4px double #e8c25a",
+          boxShadow: "0 8px 0 rgba(0,0,0,0.4)",
+          transform: `translateX(${ease9(f, [4, 20], [700, 0])}px) rotate(2deg)`,
+        }}
+      >
+        <div style={{ fontFamily: SERIF9, fontStyle: "italic", fontWeight: 700, fontSize: 42, color: "#f1e3c2" }}>
+          Fakta unik sejarah
         </div>
+      </div>
 
-        {/* Lower Stage: Faceless Character Reading Phone */}
-        <div
-          style={{
-            position: 'absolute',
-            bottom: 0,
-            left: 0,
-            right: 0,
-            height: 820,
-            display: 'flex',
-            justifyContent: 'flex-start',
-            alignItems: 'flex-end',
-            paddingLeft: 60,
-            opacity: charSpring,
-            transform: `translateY(${interpolate(charSpring, [0, 1], [160, 0]) + breathY}px)`,
-          }}
-        >
-          <svg width="680" height="780" viewBox="0 0 680 780">
-            {/* Soft ground shadow */}
-            <ellipse cx="300" cy="752" rx="220" ry="22" fill="#E2DDD3" />
-
-            {/* Legs / Trousers */}
-            <path
-              d="M210 530 L190 745 L268 745 L288 560 Z"
-              fill="#1E2430"
-              stroke="#181A20"
-              strokeWidth="5"
-              strokeLinejoin="round"
-            />
-            <path
-              d="M312 560 L332 745 L410 745 L390 530 Z"
-              fill="#151922"
-              stroke="#181A20"
-              strokeWidth="5"
-              strokeLinejoin="round"
-            />
-
-            {/* Torso - Cobalt Hoodie */}
-            <path
-              d="M175 300 C175 245, 425 245, 425 300 L440 545 C440 562, 425 572, 405 572 L195 572 C175 572, 160 562, 160 545 Z"
-              fill="#2563EB"
-              stroke="#181A20"
-              strokeWidth="5"
-              strokeLinejoin="round"
-            />
-            {/* Hoodie collar & drawstrings */}
-            <path
-              d="M242 260 C265 295, 335 295, 358 260"
-              fill="none"
-              stroke="#1D4ED8"
-              strokeWidth="12"
-              strokeLinecap="round"
-            />
-            <line
-              x1="274"
-              y1="286"
-              x2="268"
-              y2="365"
-              stroke="#FBF8F3"
-              strokeWidth="6"
-              strokeLinecap="round"
-            />
-            <line
-              x1="326"
-              y1="286"
-              x2="332"
-              y2="352"
-              stroke="#FBF8F3"
-              strokeWidth="6"
-              strokeLinecap="round"
-            />
-
-            {/* Left Arm bent resting on hip */}
-            <path
-              d="M180 295 C110 345, 102 440, 175 490"
-              fill="none"
-              stroke="#2563EB"
-              strokeWidth="58"
-              strokeLinecap="round"
-            />
-            <path
-              d="M180 295 C110 345, 102 440, 175 490"
-              fill="none"
-              stroke="#181A20"
-              strokeWidth="5"
-              strokeLinecap="round"
-            />
-
-            {/* Right Arm raised holding smartphone */}
-            <path
-              d="M412 308 C475 360, 495 415, 520 370"
-              fill="none"
-              stroke="#1D4ED8"
-              strokeWidth="54"
-              strokeLinecap="round"
-            />
-            {/* Hand */}
-            <circle
-              cx="530"
-              cy="358"
-              r="28"
-              fill="#F3C6A5"
-              stroke="#181A20"
-              strokeWidth="5"
-            />
-            {/* Smartphone */}
-            <g transform="translate(515, 255) rotate(12)">
-              <rect
-                x="0"
-                y="0"
-                width="74"
-                height="132"
-                rx="16"
-                fill="#181A20"
-              />
-              <rect
-                x="7"
-                y="10"
-                width="60"
-                height="112"
-                rx="10"
-                fill="#E0F2FE"
-              />
-              {/* Tiny chat lines on screen */}
-              <rect x="14" y="26" width="38" height="10" rx="5" fill="#22C55E" />
-              <rect x="14" y="44" width="46" height="10" rx="5" fill="#94A3B8" />
-              <rect x="22" y="64" width="38" height="12" rx="6" fill="#3B82F6" />
-            </g>
-
-            {/* Neck */}
-            <rect
-              x="272"
-              y="210"
-              width="56"
-              height="60"
-              rx="22"
-              fill="#E7B08A"
-              stroke="#181A20"
-              strokeWidth="5"
-            />
-
-            {/* Faceless Head (tilted toward phone) */}
-            <g transform={`translate(300, 160) rotate(${headTilt + 6})`}>
-              {/* Ear */}
-              <circle
-                cx="-64"
-                cy="8"
-                r="16"
-                fill="#E7B08A"
-                stroke="#181A20"
-                strokeWidth="5"
-              />
-              {/* Clean Faceless Head Shape */}
-              <ellipse
-                cx="0"
-                cy="0"
-                rx="66"
-                ry="76"
-                fill="#F3C6A5"
-                stroke="#181A20"
-                strokeWidth="5"
-              />
-              {/* Stylized Hair Silhouette */}
-              <path
-                d="M-68 -6 C-74 -68, -24 -96, 32 -84 C74 -75, 80 -32, 66 -8 C52 -32, 16 -46, -24 -36 C-48 -30, -58 -14, -68 -6 Z"
-                fill="#181A20"
-              />
-            </g>
-          </svg>
-        </div>
+      {/* keterangan bawah */}
+      <div
+        style={{
+          position: "absolute",
+          left: 80,
+          right: 80,
+          bottom: 100,
+          textAlign: "center",
+          fontFamily: SERIF9,
+          fontStyle: "italic",
+          fontWeight: 700,
+          fontSize: 52,
+          color: "#f1e3c2",
+          background: "#2a2f55",
+          border: "3px solid #e8c25a",
+          padding: "18px 24px",
+          boxShadow: "0 8px 0 rgba(0,0,0,0.4)",
+          opacity: ease9(f, [56, 72], [0, 1]),
+          transform: `translateY(${ease9(f, [56, 72], [40, 0])}px) rotate(-1deg)`,
+        }}
+      >
+        Sejarah memang penuh kejutan
       </div>
     </AbsoluteFill>
   );
-};
-
-export default Scene09;
+}

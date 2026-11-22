@@ -9,8 +9,6 @@ import { Scene06 } from './Scene06';
 import { Scene07 } from './Scene07';
 import { Scene08 } from './Scene08';
 import { Scene09 } from './Scene09';
-import { Scene10 } from './Scene10';
-import { Scene11 } from './Scene11';
 
 export interface SceneDefinition {
   id: string;
@@ -23,79 +21,65 @@ export interface SceneDefinition {
 export const SCENES: SceneDefinition[] = [
   {
     id: "scene-01",
-    durationSec: 7.74,
-    narration: "Pernah nggak, kamu udah siap berangkat, tapi temanmu malah bilang, “Sebentar ya, lima menit lagi!” Lima menit lewat.",
+    durationSec: 7.87,
+    narration: "Bayangin, kamu baru selesai mandi, tapi sebuah perang sudah berakhir. Kedengarannya mustahil, kan?",
     dark: false,
     Component: Scene01
   },
   {
     id: "scene-02",
-    durationSec: 4.46,
-    narration: "Sepuluh menit lewat. Pas kamu telepon, ternyata dia...",
+    durationSec: 14.25,
+    narration: "Tapi ini benar-benar pernah terjadi. Pada tahun 1896, Inggris dan Kesultanan Zanzibar terlibat perang yang dikenal sebagai salah satu perang tersingkat dalam sejarah.",
     dark: false,
     Component: Scene02
   },
   {
     id: "scene-03",
-    durationSec: 5.75,
-    narration: "baru bangun tidur! Atau jangan-jangan, kamu sendiri yang sering jadi pelakunya?",
+    durationSec: 11.87,
+    narration: "Semuanya bermula ketika seorang sultan baru naik takhta tanpa persetujuan Inggris. Inggris kemudian memberikan ultimatum agar sang sultan menyerah dan meninggalkan istana.",
     dark: false,
     Component: Scene03
   },
   {
     id: "scene-04",
-    durationSec: 8.82,
-    narration: "Anehnya, kata “sebentar” bisa punya arti yang beda banget buat setiap orang. Tapi kenapa sih, kita sering bilang sebentar, padahal masih lama?",
+    durationSec: 9.79,
+    narration: "Tapi ultimatum itu diabaikan. Pada pagi tanggal 27 Agustus, kapal perang Inggris mulai menembaki istana Zanzibar.",
     dark: false,
     Component: Scene04
   },
   {
     id: "scene-05",
-    durationSec: 6.98,
-    narration: "Ternyata, ada penjelasan psikologisnya. Otak manusia nggak selalu akurat dalam memperkirakan waktu.",
+    durationSec: 5.34,
+    narration: "Bangunan istana rusak parah, dan pasukan sultan tidak mampu bertahan lama.",
     dark: false,
     Component: Scene05
   },
   {
     id: "scene-06",
-    durationSec: 12.46,
-    narration: "Salah satunya berkaitan dengan fenomena *planning fallacy*, yaitu kecenderungan meremehkan waktu yang dibutuhkan untuk menyelesaikan sesuatu. Contohnya, kamu yakin bisa mandi dan siap-siap dalam lima menit.",
+    durationSec: 4.65,
+    narration: "Sekitar 38 menit kemudian, pertempuran berakhir.",
     dark: false,
     Component: Scene06
   },
   {
     id: "scene-07",
-    durationSec: 5.9,
-    narration: "Padahal, masih harus pilih baju, cari dompet, dan nyari kunci motor yang entah ditaruh di mana.",
+    durationSec: 9.27,
+    narration: "Bayangin, perang yang biasanya berlangsung berbulan-bulan, bahkan bertahun-tahun, kali ini selesai dalam waktu kurang dari satu jam.",
     dark: false,
     Component: Scene07
   },
   {
     id: "scene-08",
-    durationSec: 5.54,
-    narration: "Selain itu, kata “sebentar” kadang sengaja dipakai supaya orang lain tetap mau menunggu.",
+    durationSec: 5.91,
+    narration: "Dan peristiwa ini sekarang dikenal sebagai Perang Inggris-Zanzibar.",
     dark: false,
     Component: Scene08
   },
   {
     id: "scene-09",
-    durationSec: 3.74,
-    narration: "Jadi, kalau temanmu bilang, “Tenang, gue udah otw!”",
-    dark: false,
-    Component: Scene09
-  },
-  {
-    id: "scene-10",
-    durationSec: 1.37,
-    narration: "Coba tanya dulu...",
-    dark: false,
-    Component: Scene10
-  },
-  {
-    id: "scene-11",
-    durationSec: 3.4,
-    narration: "“Otw ke sini, atau baru otw turun dari kasur?”",
+    durationSec: 3.13,
+    narration: "Ternyata sejarah bisa seaneh itu, ya?",
     dark: true,
-    Component: Scene11
+    Component: Scene09
   }
 ];

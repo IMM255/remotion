@@ -80,7 +80,17 @@
             <span id="active-style-pill" class="pill">Kolase Kertas</span>
           </div>
           <p class="hint">Pilih gaya yang akan diterjemahkan ke prompt Remotion TSX dan latar belakang video.</p>
+          <div class="style-filter-bar">
+            <label class="sr-only" for="style-search">Cari gaya visual</label>
+            <input id="style-search" type="search" placeholder="Cari gaya (mis. blueprint, anime, faceless, swiss)…">
+            <label class="sr-only" for="style-category">Filter kategori gaya</label>
+            <select id="style-category">
+              <option value="all">Semua kategori</option>
+            </select>
+          </div>
+          <p id="style-count" class="hint"></p>
           <div id="style-gallery" class="style-gallery"></div>
+          <p class="hint style-credit">Koleksi 100 gaya tambahan diadaptasi dari <a href="https://github.com/lemomo-ai/lemo-opuscar" target="_blank" rel="noopener">Lemo-Opuscar</a> oleh Lemomo (LemoLab) (CC BY 4.0 / CC BY-NC 4.0).</p>
         </aside>
       </div>
     </section>

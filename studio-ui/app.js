@@ -79,13 +79,53 @@ function renderProjectSelect() {
   if (project) sel.value = project.id;
 }
 
+let styleFilterQuery = '';
+let styleFilterCat = 'all';
+
+function populateStyleCategories() {
+  const sel = $('style-category');
+  if (!sel) return;
+  const cats = [...new Set(stylesMeta.map((s) => s.category || 'Lainnya'))];
+  sel.replaceChildren();
+  const allOpt = document.createElement('option');
+  allOpt.value = 'all';
+  allOpt.textContent = `Semua kategori (${stylesMeta.length})`;
+  sel.append(allOpt);
+  for (const c of cats) {
+    const count = stylesMeta.filter((s) => (s.category || 'Lainnya') === c).length;
+    const opt = document.createElement('option');
+    opt.value = c;
+    opt.textContent = `${c} (${count})`;
+    sel.append(opt);
+  }
+  sel.value = styleFilterCat;
+}
+
 function renderStyleGallery() {
   const root = $('style-gallery');
   root.replaceChildren();
   const activeStyle = stylesMeta.find((s) => s.id === project?.style) || stylesMeta[0];
   $('active-style-pill').textContent = activeStyle?.name || 'Kolase Kertas';
 
-  for (const st of stylesMeta) {
+  const q = styleFilterQuery.trim().toLowerCase();
+  const filtered = stylesMeta.filter((st) => {
+    const catOk = styleFilterCat === 'all' || (st.category || 'Lainnya') === styleFilterCat;
+    if (!catOk) return false;
+    if (!q) return true;
+    return `${st.name} ${st.desc} ${st.category || ''} ${st.id}`.toLowerCase().includes(q);
+  });
+
+  const countEl = $('style-count');
+  if (countEl) {
+    countEl.textContent = `Menampilkan ${filtered.length} dari ${stylesMeta.length} gaya visual.`;
+  }
+
+  if (!filtered.length) {
+    root.innerHTML = '<div class="empty-box" style="grid-column:1/-1">Tidak ada gaya yang cocok dengan pencarian Anda.</div>';
+    return;
+  }
+
+  for (const st of filtered) {
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'style-card' + (st.id === project?.style ? ' selected' : '');
@@ -93,8 +133,15 @@ function renderStyleGallery() {
     const img = document.createElement('img');
     img.src = `/${st.thumb}`;
     img.alt = st.name;
+    img.loading = 'lazy';
     const body = document.createElement('div');
     body.className = 'style-card-body';
+    if (st.category) {
+      const cat = document.createElement('small');
+      cat.className = 'style-card-cat';
+      cat.textContent = st.category;
+      body.append(cat);
+    }
     const title = document.createElement('strong');
     title.textContent = st.name;
     const desc = document.createElement('span');
@@ -1091,8 +1138,8 @@ $('save-tokens').onchange = () => { saveTokens = $('save-tokens').checked; rende
 
 $('open-remotion-studio').onclick = safe(async () => {
   const res = await api('/api/studio/launch', { method: 'POST', body: JSON.stringify({ projectId: project.id }) });
-  toast('Remotion Studio dijalankan di http://localhost:3000. Membuka tab baru…');
-  setTimeout(() => window.open(res.url, '_blank', 'noopener'), 1200);
+  toast('Menjalankan Remotion Studio di jendela preview…');
+  window.open(res.url, '_blank', 'noopener');
 });
 
 $('start-render').onclick = safe(async () => {
@@ -1151,6 +1198,9 @@ $('cancel-render').onclick = safe(async () => {
 (async () => {
   const [meta, list] = await Promise.all([api('/api/meta'), api('/api/projects')]);
   stylesMeta = meta.styles;
+  populateStyleCategories();
+  $('style-search').oninput = () => { styleFilterQuery = $('style-search').value; renderStyleGallery(); };
+  $('style-category').onchange = () => { styleFilterCat = $('style-category').value; renderStyleGallery(); };
   projects = list.projects;
   project = projects[0];
   renderAll();

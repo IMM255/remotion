@@ -8,14 +8,15 @@ export type StylePresetId =
   | 'panggung'
   | 'anime'
   | 'cinema'
-  | 'faceless';
+  | 'faceless'
+  | (string & {});
 
 export const PROJECT_CONFIG = {
   title: "Proyek 2",
   fps: 30,
-  style: "faceless" as StylePresetId,
-  accent: "#f0b86e",
-  showSubtitles: true,
+  style: "opuscar-backrooms" as StylePresetId,
+  accent: "#8c763c",
+  showSubtitles: false,
   voiceoverFile: "voiceover-56ec354f.wav" as string | null,
   voiceoverOffsetSec: 0,
   bgmFile: null as string | null,

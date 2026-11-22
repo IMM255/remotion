@@ -282,7 +282,8 @@ ${entries}
   | 'panggung'
   | 'anime'
   | 'cinema'
-  | 'faceless';
+  | 'faceless'
+  | (string & {});
 
 export const PROJECT_CONFIG = {
   title: ${JSON.stringify(p.name || 'Remotion Project')},
